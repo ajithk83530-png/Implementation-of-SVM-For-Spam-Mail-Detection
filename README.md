@@ -27,41 +27,76 @@ RegisterNumber: 212225040015
 */
 ```
 ```
-Program to implement the SVM For Spam Mail Detection.
-Developed by: KABELAN G K
-RegisterNumber: 24900985
-import chardet
-file='spam.csv'
-with open(file, 'rb') as rawdata:
-    result = chardet.detect (rawdata.read(100000))
-result
+# Import libraries
 import pandas as pd
-data=pd.read_csv('spam.csv', encoding='Windows-1252')
-data.info()
-data.isnull().sum()
-x=data["v1"].values
-y=data["v2"].values
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
-x_train, x_test, y_train,y_test=train_test_split(x,y,test_size=0.2, random_state=0)
-from sklearn.feature_extraction.text import CountVectorizer
-cv = CountVectorizer()
-x_train=cv.fit_transform(x_train)
-x_test=cv.transform(x_test)
 from sklearn.svm import SVC
-svc=SVC()
-svc.fit(x_train, y_train)
-y_pred=svc.predict(x_test)
-y_pred
-from sklearn import metrics
-accuracy=metrics.accuracy_score(y_test,y_pred)
-accuracy
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+# ------------------------------
+# Step 1: Create dataset
+# ------------------------------
+data = {
+    'v1': ['ham','ham','spam','ham','ham'],
+    'v2': [
+        'Go until jurong point, crazy.. Available only in bugis n great world la e buffet... Cine there got amore wat...',
+        'Ok lar... Joking wif u oni...',
+        "Free entry in 2 a wkly comp to win FA Cup final tkts 21st May 2005. Text FA to 87121 to receive entry question(std txt rate)T&C's apply 08452810075over18's",
+        'U dun say so early hor... U c already then say...',
+        'Nah I don\'t think he goes to usf, he lives around here though'
+    ]
+}
+
+df = pd.DataFrame(data)
+
+# ------------------------------
+# Step 2: Encode labels (ham=0, spam=1)
+# ------------------------------
+df['label'] = df['v1'].map({'ham':0, 'spam':1})
+
+# ------------------------------
+# Step 3: Feature extraction (TF-IDF)
+# ------------------------------
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(df['v2'])
+y = df['label']
+
+# ------------------------------
+# Step 4: Train-test split
+# ------------------------------
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ------------------------------
+# Step 5: Train SVM classifier
+# ------------------------------
+svm_model = SVC(kernel='linear', C=1.0, random_state=42)
+svm_model.fit(X_train, y_train)
+
+# ------------------------------
+# Step 6: Make predictions
+# ------------------------------
+y_pred = svm_model.predict(X_test)
+
+# ------------------------------
+# Step 7: Evaluate the model
+# ------------------------------
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nAccuracy Score:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# ------------------------------
+# Step 8: Predict new message
+# ------------------------------
+new_message = ["Congratulations! You have won a free ticket to Bahamas. Call now!"]
+new_message_vect = vectorizer.transform(new_message)
+prediction = svm_model.predict(new_message_vect)
+print(f"Prediction: {'Spam' if prediction[0]==1 else 'Ham'}")
+
 ```
 
 ## Output:
-<img width="1091" height="566" alt="image" src="https://github.com/user-attachments/assets/2263823e-1348-423d-9f9f-bd9686642163" />
-<img width="798" height="620" alt="image" src="https://github.com/user-attachments/assets/e52bd1a3-bc73-48eb-8995-dfd06008846e" />
-<img width="1160" height="497" alt="image" src="https://github.com/user-attachments/assets/3cde674a-2c32-489e-8847-b06391ba1f59" />
-
+<img width="1815" height="522" alt="image" src="https://github.com/user-attachments/assets/bbabaaaf-4a87-48ee-99a4-dcd3fd7ef30c" />
 
 
 ## Result:
